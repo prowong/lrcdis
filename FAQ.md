@@ -1,0 +1,80 @@
+# lrcdis是什么？ #
+
+lrcdis是一个外挂式显歌词的脚本，特点是简单易用，只需下载后做为普通脚本执行即可，可以自动检测播放器，无须以插件的方式另外安装。
+
+目前支持的播放器有mpd, moc, audacious, amarok, exaile, quodlibet, rhythmbox, mplayer, JuK, qmmp, muine, banshee, xmms2。
+
+目前支持 CLI，OSD，nitify，kdialog，fifo，title，echo等输出方式。
+
+为了让大家对lrcdis有个直观的了解，上几张截图，所谓一图胜千言嘛。
+
+GNOME下：
+
+![![](http://li2z.cn/wp-content/uploads/2009/03/lrcdis600x.png)](http://li2z.cn/wp-content/uploads/2009/03/lrcdis.png)
+
+[点击](http://li2z.cn/wp-content/uploads/2009/03/lrcdis.png)查看原始大小图片
+
+KDE4.2下：
+
+![http://lh4.ggpht.com/_C1WSa6kKfQg/Sbo-Sh9LheI/AAAAAAAAEdc/5NiGeyBf290/s800/lrcdis-in-kde4.png](http://lh4.ggpht.com/_C1WSa6kKfQg/Sbo-Sh9LheI/AAAAAAAAEdc/5NiGeyBf290/s800/lrcdis-in-kde4.png)
+
+[点击](http://lh4.ggpht.com/_C1WSa6kKfQg/Sbo-Sh9LheI/AAAAAAAAEdc/5NiGeyBf290/lrcdis-in-kde4.png)查看原始大小图片
+
+KDE下的kdialog模式：
+
+![http://lh5.ggpht.com/_C1WSa6kKfQg/SdcEM4LmnHI/AAAAAAAAEeg/02ka3DVFBfU/s800/snapshot18.png](http://lh5.ggpht.com/_C1WSa6kKfQg/SdcEM4LmnHI/AAAAAAAAEeg/02ka3DVFBfU/s800/snapshot18.png)
+
+[点击](http://lh5.ggpht.com/_C1WSa6kKfQg/SdcEM4LmnHI/AAAAAAAAEeg/02ka3DVFBfU/snapshot18.png)查看原始大小图片
+
+# 如何使用该脚本？ #
+
+下载，解压，在播放器已经打开的情况下，直接运行该脚本即可（注意可执行权限）。
+如果您的系统上已经有gnome-osd的话，不加任何参数应该会以osd方式显示歌词，否则会以cli方式显示。
+
+
+# 为什么找不到歌词？ #
+
+首先要检测歌曲的ID3信息是否完整，是否乱码。其次要检查网络是否通畅。
+
+# 有没有办法批量把歌词文件先下载到本地？ #
+
+当然有，如果你的歌曲文件都是 歌名-歌手.mp3 这样的形式的话，就很方便了，cd到歌曲所在目录，执行：
+
+```
+for i in *.mp3; do lrcdis -d ${i%.mp3}; done
+```
+
+如果名字不规范，但是歌曲的ID3信息规范的话还可以这样：
+
+```
+for i in *mp3;do ar="`mid3v2 -l "$i" |grep TPE1 |sed 's/^.*=//'`"; ti="`mid3v2 -l "$i" |grep TIT2 |sed 's/^.*=//'`";lrcdis -d "$ti-$ar";done
+注：上述命令要求 python-mutagen 包提供的 mid3v2 命令。
+```
+
+既可下载整个目录的歌词文件了。
+
+以后离线播放也不用怕了。
+
+# 怎么显示mplayer播放歌曲的歌词？ #
+
+要让lrcdis显示mplayer的歌词有点麻烦（不过咱linuxer不是就图个折腾么：）），安照下面的命令启动mplayer即可：
+
+```
+mkfifo /dev/shm/{mfifo,ififo}
+mplayer yourmusic.mp3 -msglevel all=4 -input file=/dev/shm/mfifo|while read a;do [ "${a//ANS/}" != "$a" ] &&  echo $a>/dev/shm/ififo ;done
+```
+
+# 在kde4下使用plasma插件STDIN来输出歌词 #
+
+plasma插件STDIN，这个插件可以定时执行一个命令/脚本，然后将其结果输出到插件上。你只需将STDIN所执行的命令设定为：
+```
+cat </dev/shm/lrcfifo
+```
+执行间隔为1秒即可（再短也没有了：（），然后让lrcdis以参数-f/--fifo运行。
+下载地址：
+
+1，STDIN：http://www.kde-look.org/content/show.php/STDIN+Plasmoid?content=92309
+
+2，lrcdis：http://code.google.com/p/lrcdis/downloads/list
+
+这里有一段演示视频：http://www.youtube.com/watch?v=i9wO3lI-XE0
